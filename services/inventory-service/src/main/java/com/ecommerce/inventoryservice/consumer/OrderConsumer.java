@@ -8,7 +8,7 @@ import com.ecommerce.inventoryservice.dto.OrderRequest;
 @Component
 public class OrderConsumer {
     
-    @KafkaListener(topics="orders",groupId = "inventory-group")
+    @KafkaListener(topics="orders",groupId = "inventory-group-v2")
     public void consume(OrderRequest orderRequest){
        System.out.println("Received order request in Inventory"+ orderRequest);
     }
