@@ -1,15 +1,20 @@
 package com.ecommerce.inventoryservice.consumer;
 
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.ecommerce.inventoryservice.dto.OrderRequest;
+import com.ecommerce.inventoryservice.service.OrderEventService;
 
-@Component
+import lombok.RequiredArgsConstructor;
+@Service
+@RequiredArgsConstructor
 public class OrderConsumer {
+
+    private final OrderEventService orderEventService;
     
-    @KafkaListener(topics="orders",groupId = "inventory-group-v2")
+    @KafkaListener(topics="orders",groupId = "inventory-group-v3")
     public void consume(OrderRequest orderRequest){
-       System.out.println("Received order request in Inventory"+ orderRequest);
+       orderEventService.saveOrderEvent(orderRequest);
     }
 }

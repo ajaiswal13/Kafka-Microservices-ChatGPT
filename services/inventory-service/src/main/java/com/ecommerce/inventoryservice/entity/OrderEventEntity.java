@@ -28,17 +28,14 @@ public class OrderEventEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name="order_number", nullable=false)
-    private String orderNumber;
+    @Column(name="order_id", nullable=false)
+    private String orderId;
 
-    @Column(name="sku_code", nullable=false)
-    private String skuCode;
+    @Column(name="product_id", nullable=false)
+    private String productId;
 
     @Column(nullable=false)
     private Integer quantity;
-
-    @Column(nullable=false,precision=19,scale=2)
-    private BigDecimal price;
 
     @Column(name="received_at", nullable=false)
     private LocalDateTime receivedAt;
