@@ -15,6 +15,6 @@ public class OrderConsumer {
     
     @KafkaListener(topics="orders",groupId = "inventory-group-v3")
     public void consume(OrderRequest orderRequest){
-       orderEventService.saveOrderEvent(orderRequest);
+       orderEventService.processOrderEvent(orderRequest);
     }
 }
