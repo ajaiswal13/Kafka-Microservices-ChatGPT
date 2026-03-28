@@ -8,6 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ecommerce.inventoryservice.dto.CreateInventoryRequest;
 import com.ecommerce.inventoryservice.dto.InventoryResponse;
 import com.ecommerce.inventoryservice.entity.InventoryEntity;
+import com.ecommerce.inventoryservice.exception.InsufficientStockException;
+import com.ecommerce.inventoryservice.exception.InventoryAlreadyExistsException;
+import com.ecommerce.inventoryservice.exception.InventoryNotFoundException;
 import com.ecommerce.inventoryservice.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +25,7 @@ public class InventoryService {
     @Transactional
     public InventoryResponse createInventory(CreateInventoryRequest request){
           if(!inventoryRepository.findByProductId(request.getProductId()).isEmpty()){
-            throw new RuntimeException("Inventory already exists for this productId"+ request.getProductId());
+            throw new InventoryAlreadyExistsException("Inventory already exists for this productId "+ request.getProductId());
           }
 
           InventoryEntity inventoryEntity = InventoryEntity.builder().
@@ -30,14 +33,14 @@ public class InventoryService {
           .updatedAt(LocalDateTime.now()).build();
 
           InventoryEntity savedEntity = inventoryRepository.save(inventoryEntity);
-          log.info("Inventory created for product_id" + savedEntity.getProductId());
+          log.info("Inventory created for product_id " + savedEntity.getProductId());
           return mapToResponse(savedEntity);
     }
 
     @Transactional(readOnly = true)
     public InventoryResponse getInventoryByProductId(String productId){
         InventoryEntity inventoryEntity = inventoryRepository.findByProductId(productId)
-        .orElseThrow(() -> new RuntimeException("Product does not exist in the inventory"));
+        .orElseThrow(() -> new InventoryNotFoundException("Product does not exist in the inventory"));
         return mapToResponse(inventoryEntity);
     }
 
@@ -52,16 +55,15 @@ public class InventoryService {
     @Transactional
     public void reduceStock(String productId, Integer orderedQuantity){
         InventoryEntity inventoryEntity = inventoryRepository.findByProductId(productId)
-        .orElseThrow(() -> new RuntimeException("Product does not exist in the inventory"));
+        .orElseThrow(() -> new InventoryNotFoundException("Product does not exist in the inventory"));
         if(inventoryEntity.getAvailableQuantity()<orderedQuantity){
-            log.info("Insufficient stock for this productid" + productId + "for this quantity"+orderedQuantity);
-            return;
+            throw new InsufficientStockException("Insufficient stock for this productid " + productId + " for this quantity "+orderedQuantity);
         }
 
         inventoryEntity.setAvailableQuantity(inventoryEntity.getAvailableQuantity()-orderedQuantity);
         inventoryEntity.setUpdatedAt(LocalDateTime.now());
         inventoryRepository.save(inventoryEntity);
-        log.info("Current stock in inventory for productId" + productId + "after update is "+inventoryEntity.getAvailableQuantity());
+        log.info("Current stock in inventory for productId " + productId + " after update is "+inventoryEntity.getAvailableQuantity());
     }
 
 

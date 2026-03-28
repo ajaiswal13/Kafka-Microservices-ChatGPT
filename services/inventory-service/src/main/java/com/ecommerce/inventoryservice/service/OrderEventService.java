@@ -25,12 +25,22 @@ public class OrderEventService {
     public void processOrderEvent(OrderRequest orderRequest){
        log.info("Received order"+ orderRequest);
 
+       // 1. Idempotency check
+       if(orderEventRepository.existsByOrderId(orderRequest.getOrderId())){
+         log.warn("Duplicate order event received. Skipping processing for orderId: {}",
+                    orderRequest.getOrderId());
+         return;
+       }
+
+       // 2. Save event (audit)
        OrderEventEntity orderEventEntity = OrderEventEntity.builder()
        .orderId(orderRequest.getOrderId()).productId(orderRequest.getProductId())
        .quantity(orderRequest.getQuantity()).receivedAt(LocalDateTime.now()).build();
 
        orderEventRepository.save(orderEventEntity);
        log.info("Order event saved in DB with id"+ orderRequest.getOrderId());
+
+       // 3. Business logic: inventory handling
        if(inventoryService.isInStock(orderRequest.getProductId(),orderRequest.getQuantity())){
             inventoryService.reduceStock(orderRequest.getProductId(), orderRequest.getQuantity());
             log.info("Updated inventory for this order"+ orderRequest.getOrderId());
